@@ -8,5 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="onemta-2.1.0" level="project" />
+    <orderEntry type="library" name="protobuf-java-3.25.1" level="project" />
   </component>
 </module>
