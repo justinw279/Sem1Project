@@ -49,16 +49,32 @@ public class Main {
 
         Bus.Route busRoute = null;
         Subway.Route subwayRoute = null;
+        Subway.Stop subwayStop = null;
         Subway.Alert[] subwayAlert = mta.getSubwayAlerts();
         LIRR.Route lirrRoute = null;
         MNR.Route mnrRoute = null;
 
 
         if (parseInt(input) == 1) {
-            System.out.println("Enter subway line (IDs to be provided to get alerts: "); //Intent is to look through OneMTA to parse in appropriate IDs
+            System.out.println("Enter subway line to get vehicles: ");
             input = scan.nextLine();
             subwayRoute = mta.getSubwayRoute(input);
-            System.out.println(Arrays.toString(subwayAlert));
+            Subway.Vehicle[] subwayVehicles = subwayRoute.getVehicles();
+            for (int i = 0; i < subwayVehicles.length; i++) {
+                System.out.println("Status: " + subwayVehicles[i].getStatus());
+                System.out.println("Direction: " + subwayVehicles[i].getStop().getDirection());
+                System.out.println("Next stop: " + subwayVehicles[i].getStop().getStopName());
+                System.out.println("Stop ID: " + subwayVehicles[i].getStopID()); // stop it is going to i think
+                System.out.println();
+            }
+            System.out.println("Enter stop ID: ");
+            input = scan.nextLine();
+            subwayStop = mta.getSubwayStop(input);
+
+            for (int i = 0; i < subwayStop.getVehicles().length; i++) {
+                System.out.println(subwayStop.getVehicles()[i].getVehicleID());
+                System.out.println(subwayStop.getVehicles()[i].getStatus());
+            }
         } else if (parseInt(input) == 2) {
             System.out.println("Enter borough (M for Manhattan, K for Brooklyn, Q for Queens, X for the Bronx, R for Staten Island)");
             input = scan.nextLine();
