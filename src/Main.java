@@ -15,16 +15,10 @@ import static java.lang.Integer.parseInt;
 
 public class Main {
     public static void main(String[] args) {
-
         // Handling of MTA stuff
         String busToken = "9505ac3a-8606-472c-b8d9-be440ee0b4bc";
         String subwayToken = "jqIP5yUzKL8kCHomCgdha7i3yjhnCU9882FvbMOG";
-
-        // Parsing to be handled.
-        Parser parse = new Parser();
-
         System.out.println("Push ENTER when you're ready.");
-
         MTA mta = MTA.create(
                 busToken,
                 subwayToken,
@@ -38,9 +32,6 @@ public class Main {
                 DataResource.create(DataResourceType.LongIslandRailroad, new File("src\\google_transit_lirr.zip")),
                 DataResource.create(DataResourceType.MetroNorthRailroad, new File("src\\google_transit_mnr.zip"))
         );
-
-
-
         Scanner scan = new Scanner(System.in);
         scan.nextLine();
         System.out.println("MTA service status:");
@@ -56,22 +47,25 @@ public class Main {
         Bus.Vehicle busVehicles = null;
         Bus.Stop busStop = null;
 
+        SubwayData subwayData = new SubwayData(mta); // MTA class can't be referred from static context.
+
+
 
         if (parseInt(input) == 1) {
-            System.out.println("Enter subway line to get vehicles: ");
+            System.out.println("What would you like to do?\n1. Get all vehicles of a subway line\n2. Get upcoming trains for a stop");
             input = scan.nextLine();
-            subwayRoute = mta.getSubwayRoute(input);
-            Subway.Vehicle[] subwayVehicles = subwayRoute.getVehicles();
-            for (int i = 0; i < subwayVehicles.length; i++) {
-                System.out.println("Status: " + subwayVehicles[i].getStatus());
-                System.out.println("Direction: " + subwayVehicles[i].getStop().getDirection());
-                System.out.println("Next stop: " + subwayVehicles[i].getStop().getStopName());
-                System.out.println("Stop ID: " + subwayVehicles[i].getStopID()); // stop it is going to i think
-                System.out.println();
+            switch (input) {
+                case "1":
+                    System.out.println("Enter subway line to get vehicles (eg. 1, 2, 3, 7, E, F, M, R, SI): ");
+                    String nextInput = scan.nextLine();
+                    subwayData.displaySubwayVehicles(nextInput);
+                    break;
+                case "2":
+                    System.out.println("Enter subway stop ID (try 631 as an example for Grand Central (456)!): ");
+                    nextInput = scan.nextLine();
+                    subwayData.subwayStopInformation(nextInput);
+                    break;
             }
-            System.out.println("Enter subway stop ID: ");
-            subwayStop = mta.getSubwayStop(input);
-
         } else if (parseInt(input) == 2) {
             System.out.println("Enter borough (M for Manhattan, K for Brooklyn, Q for Queens, X for the Bronx, R for Staten Island)");
             input = scan.nextLine();
@@ -96,14 +90,21 @@ public class Main {
                 System.out.println(busRoute.getVehicles()[i]);
             }
 
-            System.out.println("Enter bus stop ID to get arrival information: ");
+            System.out.println("Enter bus stop ID to get vehicles information: ");
             int busStopInput = Integer.parseInt(scan.nextLine());
             busStop = mta.getBusStop(busStopInput);
             System.out.println(busStop.getStopName());
+            System.out.println(busStop.getStopID());
             for (int i = 0; i < busStop.getVehicles().length; i++) {
-                System.out.print(busStop.getVehicles()[i].getTrip().getRoute().getRouteShortName() + " ");
-                System.out.println(busStop.getVehicles()[i].getTrip().getVehicle().getStop());
-                System.out.println(busStop.getVehicles()[i].getStop());
+                System.out.println("Vehicles approaching bus stop: ");
+                System.out.println("#" + (i + 1));
+                System.out.println("Route: " + busStop.getVehicles()[i].getRoute().getRouteShortName() + " " +  busStop.getVehicles()[i].getRoute().getRouteName());
+                System.out.println("Vehicle Number: " + busStop.getVehicles()[i].getVehicleID());
+                System.out.println("Trip: " + busStop.getVehicles()[i].getTrip());
+                System.out.println("Next stop: " + busStop.getVehicles()[i].getStop().getStopName());
+                System.out.println("Passengers: " + busStop.getVehicles()[i].getPassengers());
+                System.out.println();
+
             }
 
         } else if (parseInt(input) == 3) {
