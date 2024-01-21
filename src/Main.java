@@ -53,6 +53,8 @@ public class Main {
         Subway.Alert[] subwayAlert = mta.getSubwayAlerts();
         LIRR.Route lirrRoute = null;
         MNR.Route mnrRoute = null;
+        Bus.Vehicle busVehicles = null;
+        Bus.Stop busStop = null;
 
 
         if (parseInt(input) == 1) {
@@ -67,14 +69,9 @@ public class Main {
                 System.out.println("Stop ID: " + subwayVehicles[i].getStopID()); // stop it is going to i think
                 System.out.println();
             }
-            System.out.println("Enter stop ID: ");
-            input = scan.nextLine();
+            System.out.println("Enter subway stop ID: ");
             subwayStop = mta.getSubwayStop(input);
 
-            for (int i = 0; i < subwayStop.getVehicles().length; i++) {
-                System.out.println(subwayStop.getVehicles()[i].getVehicleID());
-                System.out.println(subwayStop.getVehicles()[i].getStatus());
-            }
         } else if (parseInt(input) == 2) {
             System.out.println("Enter borough (M for Manhattan, K for Brooklyn, Q for Queens, X for the Bronx, R for Staten Island)");
             input = scan.nextLine();
@@ -92,7 +89,23 @@ public class Main {
                 case "R":
                     busRoute = mta.getBusRoute(busRouteInput, DataResourceType.Bus_StatenIsland);
             }
-            System.out.println(busRoute);
+            assert busRoute != null;
+            System.out.println("Bus route: " + busRoute.getRouteDescription());
+            System.out.println("Bus route alerts: " + Arrays.toString(busRoute.getAlerts()));
+            for (int i = 0; i < busRoute.getVehicles().length; i++) {
+                System.out.println(busRoute.getVehicles()[i]);
+            }
+
+            System.out.println("Enter bus stop ID to get arrival information: ");
+            int busStopInput = Integer.parseInt(scan.nextLine());
+            busStop = mta.getBusStop(busStopInput);
+            System.out.println(busStop.getStopName());
+            for (int i = 0; i < busStop.getVehicles().length; i++) {
+                System.out.print(busStop.getVehicles()[i].getTrip().getRoute().getRouteShortName() + " ");
+                System.out.println(busStop.getVehicles()[i].getTrip().getVehicle().getStop());
+                System.out.println(busStop.getVehicles()[i].getStop());
+            }
+
         } else if (parseInt(input) == 3) {
             System.out.println("Enter LIRR route ID below.");
             input = scan.nextLine();
@@ -104,17 +117,5 @@ public class Main {
             mnrRoute = mta.getMNRRoute(parseInt(input));
             System.out.println("Metro North Railroad service alerts:" + Arrays.toString(mta.getMNRAlerts()));
         }
-
-        /*
-          _____   _   _ ______ ______ _____    _______ ____    _____        _____   _____ ______   _____       _______
-         |_   _| | \ | |  ____|  ____|  __ \  |__   __/ __ \  |  __ \ /\   |  __ \ / ____|  ____| |  __ \   /\|__   __|/\
-           | |   |  \| | |__  | |__  | |  | |    | | | |  | | | |__) /  \  | |__) | (___ | |__    | |  | | /  \  | |  /  \
-           | |   | . ` |  __| |  __| | |  | |    | | | |  | | |  ___/ /\ \ |  _  / \___ \|  __|   | |  | |/ /\ \ | | / /\ \
-          _| |_  | |\  | |____| |____| |__| |    | | | |__| | | |  / ____ \| | \ \ ____) | |____  | |__| / ____ \| |/ ____ \
-         |_____| |_| \_|______|______|_____/     |_|  \____/  |_| /_/    \_\_|  \_\_____/|______| |_____/_/    \_\_/_/    \_\
-         */
-
-
-
     }
 }
