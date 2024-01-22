@@ -5,23 +5,29 @@ import dev.katsute.onemta.bus.Bus;
 import dev.katsute.onemta.railroad.LIRR;
 import dev.katsute.onemta.railroad.MNR;
 import dev.katsute.onemta.subway.Subway;
-
 import java.util.Arrays;
 import java.util.Scanner;
 import java.io.File;
-
 import static java.lang.Integer.parseInt;
+import java.lang.Thread;
+import java.io.*;
+
 
 
 public class Main {
-    public static void main(String[] args) {
-        // Handling of MTA stuff
-        String busToken = "9505ac3a-8606-472c-b8d9-be440ee0b4bc";
-        String subwayToken = "jqIP5yUzKL8kCHomCgdha7i3yjhnCU9882FvbMOG";
+    public static void main(String[] args) throws InterruptedException {
         System.out.println("Push ENTER when you're ready.");
+        // API access keys
+        final String BUS_TOKEN = "9505ac3a-8606-472c-b8d9-be440ee0b4bc";
+        final String SUBWAY_TOKEN = "jqIP5yUzKL8kCHomCgdha7i3yjhnCU9882FvbMOG";
+        // Required variables to connect to MTA API
+        Scanner scan = new Scanner(System.in);
+        scan.nextLine();
+
+        // MTA class used to access the API
         MTA mta = MTA.create(
-                busToken,
-                subwayToken,
+                BUS_TOKEN,
+                SUBWAY_TOKEN,
                 DataResource.create(DataResourceType.Bus_Bronx, new File("src\\google_transit_bronx.zip")),
                 DataResource.create(DataResourceType.Bus_Brooklyn, new File("src\\google_transit_brooklyn.zip")),
                 DataResource.create(DataResourceType.Bus_Manhattan, new File("src\\google_transit_manhattan.zip")),
@@ -30,93 +36,91 @@ public class Main {
                 DataResource.create(DataResourceType.Bus_Company, new File("src\\google_transit_bus_company.zip")),
                 DataResource.create(DataResourceType.Subway, new File("src\\google_transit_subway.zip")),
                 DataResource.create(DataResourceType.LongIslandRailroad, new File("src\\google_transit_lirr.zip")),
-                DataResource.create(DataResourceType.MetroNorthRailroad, new File("src\\google_transit_mnr.zip"))
-        );
-        Scanner scan = new Scanner(System.in);
-        scan.nextLine();
-        System.out.println("MTA service status:");
-        System.out.println("1 - SUBWAY, 2 - BUS, 3 - LIRR, 4 - METRO-NORTH");
+                DataResource.create(DataResourceType.MetroNorthRailroad, new File("src\\google_transit_mnr.zip")));
+
+        clearScreen();
+        System.out.println("TransitInfo:");
+        System.out.println("1 - SUBWAY, 2 - BUS, 3 - LIRR");
         String input = scan.nextLine();
 
-        Bus.Route busRoute = null;
-        Subway.Route subwayRoute = null;
-        Subway.Stop subwayStop = null;
-        Subway.Alert[] subwayAlert = mta.getSubwayAlerts();
-        LIRR.Route lirrRoute = null;
-        MNR.Route mnrRoute = null;
-        Bus.Vehicle busVehicles = null;
-        Bus.Stop busStop = null;
 
-        SubwayData subwayData = new SubwayData(mta); // MTA class can't be referred from static context.
+        // Class variables
+        BusData busData = new BusData(mta);
+        LIRRData lirrData = new LIRRData(mta);
+        SubwayData subwayData = new SubwayData(mta);
 
-
-
+        // UI input
         if (parseInt(input) == 1) {
             System.out.println("What would you like to do?\n1. Get all vehicles of a subway line\n2. Get upcoming trains for a stop");
             input = scan.nextLine();
+            clearScreen();
             switch (input) {
                 case "1":
                     System.out.println("Enter subway line to get vehicles (eg. 1, 2, 3, 7, E, F, M, R, SI): ");
                     String nextInput = scan.nextLine();
+                    clearScreen();
                     subwayData.displaySubwayVehicles(nextInput);
                     break;
                 case "2":
                     System.out.println("Enter subway stop ID (try 631 as an example for Grand Central (456)!): ");
                     nextInput = scan.nextLine();
+                    clearScreen();
                     subwayData.subwayStopInformation(nextInput);
                     break;
             }
         } else if (parseInt(input) == 2) {
-            System.out.println("Enter borough (M for Manhattan, K for Brooklyn, Q for Queens, X for the Bronx, R for Staten Island)");
+            System.out.println("What would you like to do?\n1. Get info for a bus route\n2. Get upcoming buses for a bus stop");
             input = scan.nextLine();
-            System.out.println("What route?");
-            String busRouteInput = scan.nextLine();
+            clearScreen();
             switch (input) {
-                case "M":
-                    busRoute = mta.getBusRoute(busRouteInput, DataResourceType.Bus_Manhattan);
-                case "K":
-                    busRoute = mta.getBusRoute(busRouteInput, DataResourceType.Bus_Brooklyn);
-                case "Q":
-                    busRoute = mta.getBusRoute(busRouteInput, DataResourceType.Bus_Queens);
-                case "X":
-                    busRoute = mta.getBusRoute(busRouteInput, DataResourceType.Bus_Bronx);
-                case "R":
-                    busRoute = mta.getBusRoute(busRouteInput, DataResourceType.Bus_StatenIsland);
+                case "1":
+                    System.out.println("Which route? (eg. Q88, B6, M15-SBS, Bx12, S93)");
+                    String busRouteInput = scan.nextLine();
+                    clearScreen();
+                    busData.busRouteInformation(busRouteInput);
+                    break;
+                case "2":
+                    System.out.println("Enter bus stop ID to get vehicles information (try 504480 as an example!): ");
+                    input = scan.nextLine();
+                    clearScreen();
+                    busData.busStopInformation(input);
+                    break;
             }
-            assert busRoute != null;
-            System.out.println("Bus route: " + busRoute.getRouteDescription());
-            System.out.println("Bus route alerts: " + Arrays.toString(busRoute.getAlerts()));
-            for (int i = 0; i < busRoute.getVehicles().length; i++) {
-                System.out.println(busRoute.getVehicles()[i]);
-            }
-
-            System.out.println("Enter bus stop ID to get vehicles information: ");
-            int busStopInput = Integer.parseInt(scan.nextLine());
-            busStop = mta.getBusStop(busStopInput);
-            System.out.println(busStop.getStopName());
-            System.out.println(busStop.getStopID());
-            for (int i = 0; i < busStop.getVehicles().length; i++) {
-                System.out.println("Vehicles approaching bus stop: ");
-                System.out.println("#" + (i + 1));
-                System.out.println("Route: " + busStop.getVehicles()[i].getRoute().getRouteShortName() + " " +  busStop.getVehicles()[i].getRoute().getRouteName());
-                System.out.println("Vehicle Number: " + busStop.getVehicles()[i].getVehicleID());
-                System.out.println("Trip: " + busStop.getVehicles()[i].getTrip());
-                System.out.println("Next stop: " + busStop.getVehicles()[i].getStop().getStopName());
-                System.out.println("Passengers: " + busStop.getVehicles()[i].getPassengers());
-                System.out.println();
-
-            }
-
         } else if (parseInt(input) == 3) {
-            System.out.println("Enter LIRR route ID below.");
+            System.out.println("What would you like to do?\n1. Get route information and trains\n2. Get station information\n3. Get information about a running train");
             input = scan.nextLine();
-            lirrRoute = mta.getLIRRRoute(parseInt(input));
-            System.out.println("Long Island Rail Road service alerts: " + Arrays.toString(mta.getLIRRAlerts()));
-        } else if (parseInt(input) == 4) {
-            System.out.println("Enter MNR route ID below.");
-            input = scan.nextLine();
-            mnrRoute = mta.getMNRRoute(parseInt(input));
-            System.out.println("Metro North Railroad service alerts:" + Arrays.toString(mta.getMNRAlerts()));
+            scan.reset();
+            clearScreen();
+            switch (input) {
+                case "1":
+                    LIRRData.displayIDToLineConversion();
+                    System.out.println("Which route would you like to get information and vehicles from? Remember to use the route ID!");
+                    int lirrInput = scan.nextInt();
+                    clearScreen();
+                    lirrData.getRouteInformation(lirrInput);
+                    break;
+                case "2":
+                    System.out.println("Which station would you like to check? Use the internal station ID at https://github.com/errornil/mta/blob/main/lirr.md.");
+                    System.out.println("Example: 1 for Albertson");
+                    lirrInput = scan.nextInt();
+                    clearScreen();
+                    lirrData.getStationInformation(lirrInput);
+                    break;
+                case "3":
+                    System.out.println("Enter a train number:");
+                    lirrInput = scan.nextInt();
+                    clearScreen();
+                    try {
+                        lirrData.getTrainInformation(lirrInput);
+                    } catch (Exception e) {
+                        System.out.println("No such train found.");
+                    }
+            }
         }
+    }
+
+    public static void clearScreen() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
     }
 }
